@@ -1,0 +1,39 @@
+a {
+    text-decoration: none !important;
+}
+
+.menu li {
+    transition: .3s;
+}
+
+.menu li:not(.parent-menu):hover,
+.menu li .sub-menu-item:hover {
+    background-color: #f0f0f0;
+}
+
+.sub-menu {
+    display: none;
+    translate: .3s;
+}
+.sub-menu.active {
+    display: block;
+}
+.parent-menu > a > i {
+    transition: .3s;
+}
+.parent-menu > a > i.active {
+    transform: rotate(180deg);
+}
+
+
+.left-side,
+.right-side {
+    min-height: calc(100vh - 20px);
+    max-height: calc(100vh - 20px);
+}
+.left-side {
+    width: calc(25% - 20px);
+}
+.right-side {
+    left: calc(25% + 20px);
+}
