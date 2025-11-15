@@ -18,7 +18,7 @@ Invoices App is a simple and efficient web application designed for managing inv
 To install follow these steps
 
 ``` 
-git clone https://github.com/Eng-Ahmed-Mostafa/invoices.git
+git clone -b main https://github.com/Eng-Ahmed-Mostafa/invoices.git
 cd invoices
 composer install
 npm install && npm run dev
