@@ -10,7 +10,7 @@ use App\Http\Controllers\Dashboard\DashboradController;
 
 
 
-Route::prefix('dashboard')->middleware(['auth'])->name('dashboard.')->group(function() {
+Route::prefix('dashboard')->middleware(['auth','verified'])->name('dashboard.')->group(function() {
     // dashboard 
     Route::get('/', [DashboradController::class,'index'])->name('index'); 
 

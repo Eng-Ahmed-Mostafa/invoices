@@ -14,14 +14,15 @@
 <body class="bg-warning vh-100">
     <main class="container-fluid py-2" style="min-height: 100vh">
         <div class="left-side position-fixed bg-light rounded-4 p-3">
-            <a class="d-flex align-items-center gap-2">
+            <a href="{{ route('dashboard.index') }}" class="d-flex align-items-center gap-2">
                 <img src="{{ asset('assets/images/logo.png') }}" alt="logo" width="60">
                 <span class="text-uppercase fs-2 fw-bold text-black">GGC</span>
             </a>
             <hr class="border border-black border-2 opacity-75">
             <ul class="menu list-unstyled d-flex flex-column gap-3">
                 <li class="menu-item parent-menu">
-                    <a href="javascript:void(0)" class="d-flex text-black fs-4 justify-content-between align-items-center p-2">
+                    <a href="javascript:void(0)"
+                        class="d-flex text-black fs-4 justify-content-between align-items-center p-2">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fa-solid fa-receipt"></i>
                             <span>Invoices</span>
@@ -42,7 +43,8 @@
                     </ul>
                 </li>
                 <li class="menu-item parent-menu">
-                    <a href="javascript:void(0)" class="d-flex text-black fs-4 justify-content-between align-items-center p-2">
+                    <a href="javascript:void(0)"
+                        class="d-flex text-black fs-4 justify-content-between align-items-center p-2">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fa-solid fa-users-line"></i>
                             <span>Clients</span>
@@ -63,7 +65,8 @@
                     </ul>
                 </li>
                 <li class="menu-item parent-menu">
-                    <a href="javascript:void(0)" class="d-flex text-black fs-4 justify-content-between align-items-center p-2">
+                    <a href="javascript:void(0)"
+                        class="d-flex text-black fs-4 justify-content-between align-items-center p-2">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fa-solid fa-bag-shopping"></i>
                             <span>Product</span>
@@ -84,7 +87,8 @@
                     </ul>
                 </li>
                 <li class="menu-item parent-menu">
-                    <a href="javascript:void(0)" class="d-flex text-black fs-4 justify-content-between align-items-center p-2">
+                    <a href="javascript:void(0)"
+                        class="d-flex text-black fs-4 justify-content-between align-items-center p-2">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fa-solid fa-cart-arrow-down"></i>
                             <span>Cart</span>
@@ -133,7 +137,17 @@
                         <span class="fw-bold">Ahmed</span>
                     </div>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">logout</a></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('logout') }}"
+                                onclick="event.preventDefault();
+                                document.getElementById('logout-form').submit();">
+                                {{ __('Logout') }}
+                            </a>
+
+                        </li>
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                            @csrf
+                        </form>
                     </ul>
                 </div>
             </div>
