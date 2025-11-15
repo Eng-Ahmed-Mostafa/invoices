@@ -1,7 +1,6 @@
 @extends('layouts.dashboard')
 
 @section('content')
-    <div class=" bg-light rounded-4  p-3 shadow-sm">
         <div class="row row-cols-3 g-4">
             <div class="col">
                 <div class="text-bg-primary rounded-4 p-3">
@@ -63,5 +62,4 @@
                 </tbody>
             </table>
         </div>
-    </div>
 @endsection

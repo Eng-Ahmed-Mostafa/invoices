@@ -30,12 +30,12 @@
                     </a>
                     <ul class="list-unstyled sub-menu">
                         <li class="sub-menu-item ps-4 mb-2">
-                            <a href="" class="text-secondary-emphasis">
+                            <a href="{{ route('dashboard.invoices.create') }}" class="text-secondary-emphasis">
                                 <div class="text">Add Invoice</div>
                             </a>
                         </li>
                         <li class="sub-menu-item ps-4">
-                            <a href="" class="text-secondary-emphasis">
+                            <a href="{{ route('dashboard.invoices.index') }}" class="text-secondary-emphasis">
                                 <div class="text">Invoices</div>
                             </a>
                         </li>
@@ -45,19 +45,61 @@
                     <a href="javascript:void(0)" class="d-flex text-black fs-4 justify-content-between align-items-center p-2">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fa-solid fa-users-line"></i>
-                            <span>Customer</span>
+                            <span>Clients</span>
                         </div>
                         <i class="fa-solid fa-angle-up"></i>
                     </a>
                     <ul class="list-unstyled sub-menu">
                         <li class="sub-menu-item ps-4 mb-2">
-                            <a href="" class="text-secondary-emphasis">
-                                <div class="text">Add Customer</div>
+                            <a href="{{ route('dashboard.clients.create') }}" class="text-secondary-emphasis">
+                                <div class="text">Add Client</div>
                             </a>
                         </li>
                         <li class="sub-menu-item ps-4">
-                            <a href="" class="text-secondary-emphasis">
-                                <div class="text">Customers</div>
+                            <a href="{{ route('dashboard.clients.index') }}" class="text-secondary-emphasis">
+                                <div class="text">Clients</div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="menu-item parent-menu">
+                    <a href="javascript:void(0)" class="d-flex text-black fs-4 justify-content-between align-items-center p-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-bag-shopping"></i>
+                            <span>Product</span>
+                        </div>
+                        <i class="fa-solid fa-angle-up"></i>
+                    </a>
+                    <ul class="list-unstyled sub-menu">
+                        <li class="sub-menu-item ps-4 mb-2">
+                            <a href="{{ route('dashboard.products.create') }}" class="text-secondary-emphasis">
+                                <div class="text">Add product</div>
+                            </a>
+                        </li>
+                        <li class="sub-menu-item ps-4">
+                            <a href="{{ route('dashboard.products.index') }}" class="text-secondary-emphasis">
+                                <div class="text">Products</div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="menu-item parent-menu">
+                    <a href="javascript:void(0)" class="d-flex text-black fs-4 justify-content-between align-items-center p-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-cart-arrow-down"></i>
+                            <span>Cart</span>
+                        </div>
+                        <i class="fa-solid fa-angle-up"></i>
+                    </a>
+                    <ul class="list-unstyled sub-menu">
+                        <li class="sub-menu-item ps-4 mb-2">
+                            <a href="{{ route('dashboard.carts.create') }}" class="text-secondary-emphasis">
+                                <div class="text">Add Cart</div>
+                            </a>
+                        </li>
+                        <li class="sub-menu-item ps-4">
+                            <a href="{{ route('dashboard.carts.index') }}" class="text-secondary-emphasis">
+                                <div class="text">Carts</div>
                             </a>
                         </li>
                     </ul>
@@ -80,7 +122,7 @@
                 </li>
             </ul>
         </div>
-        <div class="right-side position-sticky w-75">
+        <div class="right-side position-sticky w-75 d-flex flex-column">
             <div class="bg-light rounded-4 p-3 text-end d-flex justify-content-end align-items-center gap-3 mb-3">
                 <i class="fa-solid fa-bell fs-3"></i>
                 <div class="dropdown">
@@ -95,7 +137,9 @@
                     </ul>
                 </div>
             </div>
-            @yield('content')
+            <div class="main-body bg-light rounded-4 p-3 flex-grow-1 shadow-sm overflow-y-auto">
+                @yield('content')
+            </div>
         </div>
     </main>
     <script src="{{ asset('assets/js/script.js') }}"></script>

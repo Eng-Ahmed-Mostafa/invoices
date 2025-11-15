@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class Dashborad extends Controller
+class DashboradController extends Controller
 {
     /**
      * Display a listing of the dashboard.

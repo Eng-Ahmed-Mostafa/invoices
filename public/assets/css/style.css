@@ -37,3 +37,15 @@ a {
 .right-side {
     left: calc(25% + 20px);
 }
+
+.main-body {
+    min-height: 100%;
+}
+
+.modal {
+    z-index: 9999 !important;
+}
+
+.modal-backdrop.show {
+    display: none !important;
+}
