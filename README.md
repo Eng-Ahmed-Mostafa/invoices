@@ -11,7 +11,7 @@ Invoices App is a simple and efficient web application designed for managing inv
 - Multiple Clients: a user can create and manage multiple clients
 - User Scope: users can only access invoices, carts, and clients they created
 - Soft Delete: safely remove records without permanent deletion
-- PDF Generation: export invoices as PDF
+- PDF Generation: export invoices as PDF by use jsPDF
 
 ## Install
 
