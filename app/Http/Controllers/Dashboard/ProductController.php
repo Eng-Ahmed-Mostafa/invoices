@@ -44,9 +44,9 @@ class ProductController extends Controller
             'slug'=> 'required|unique:products,slug',
             'image'=> 'nullable|image|mimes:png,jpg,jpeg,gif|max:2048',
             'price'=> 'required|numeric|min:0',
+            'quantity'=> 'required|integer|min:0',
+            'description'=> 'nullable|string',
         ]);
-
-
 
         $slug = \Str::slug($request->slug);
 
@@ -62,6 +62,8 @@ class ProductController extends Controller
             'slug' => $slug,
             'image' => $imagePath,
             'price' => $request->price,
+            'quantity' => $request->quantity,
+            'description' => $request->description,
             'user_id' => Auth::id()
         ]);
 
@@ -96,6 +98,8 @@ class ProductController extends Controller
             'slug'=> "required|unique:products,slug,$id",
             'image'=> 'nullable|image|mimes:png,jpg,jpeg,gif|max:2048',
             'price'=> 'required|numeric|min:0',
+            'quantity'=> 'required|integer|min:0',
+            'description'=> 'nullable|string',
         ]);
 
         $slug = \Str::slug($request->slug);
@@ -111,12 +115,14 @@ class ProductController extends Controller
             }
             $imagePath = $request->file('image')->store('images/products', 'public');
         }
-
+        // dd($request->quantity);
         $product->update([
             'title' => $request->title,
             'slug' => $slug,
             'image' => $imagePath,
             'price' => $request->price,
+            'quantity' => $request->quantity,
+            'description' => $request->description,
         ]);
 
         return redirect()->route('dashboard.products.index');
