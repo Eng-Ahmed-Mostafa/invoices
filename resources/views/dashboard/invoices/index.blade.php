@@ -1,6 +1,10 @@
 @extends('layouts.dashboard')
 
-@section('content')
+@section('content') 
+        <button class="btn btn-primary mb-3" onclick="downloadInvoicesPDF()">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
+        </button>
+
         <div class="table-responsive overflow-auto h-50 mt-5 rounded-4">
             <table class="table table-hover table-warning table-striped">
                 <thead>
@@ -21,7 +25,7 @@
                         <tr>
                             <th scope="row">{{ $loop->iteration + $invoices->firstItem() - 1 }}</th>
                             <td>{{ $invoice->invoice_number }}</td>
-                            <td>{{ $invoice->cart->client->username }}</td>
+                            <td>{{ $invoice->client->username }}</td>
                             <td>{{ $invoice->invoice_date->format('Y-m-d') }}</td>
                             <td>{{ $invoice->due_date->format('Y-m-d') }}</td>
                             <td>${{ $invoice->total_amount }}</td>
@@ -73,3 +77,29 @@
             {{ $invoices->links('pagination::bootstrap-5') }}
         </div>
 @endsection
+
+@push('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        async function downloadInvoicesPDF() {
+            const table = document.querySelector('.table-responsive');
+            table.classList.add('container-fluid','py-4');
+            const canvas = await html2canvas(table, { scale: 2 });
+            table.classList.remove('container-fluid','py-4');
+
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+
+            const pdf = new jsPDF('p', 'pt', 'a4');
+
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save('invoices.pdf');
+        }
+    </script>
+
+@endpush

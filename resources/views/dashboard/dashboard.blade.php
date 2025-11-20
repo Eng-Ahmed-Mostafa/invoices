@@ -39,7 +39,7 @@
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">Invoice Number</th>
-                        <th scope="col">Client id</th>
+                        <th scope="col">Client</th>
                         <th scope="col">Invoice date</th>
                         <th scope="col">Due date</th>
                         <th scope="col">Total amount</th>
@@ -51,7 +51,7 @@
                         <tr>
                             <th scope="row">{{ $loop->index + 1 }}</th>
                             <td>{{ $invoice->invoice_number }}</td>
-                            <td>{{ $invoice->cart->client->username }}</td>
+                            <td>{{ $invoice->client->username }}</td>
 
                             <td>{{ $invoice->invoice_date->format('Y-m-d') }}</td>
                             <td>{{ $invoice->due_date->format('Y-m-d') }}</td>
@@ -65,3 +65,4 @@
             </table>
         </div>
 @endsection
+

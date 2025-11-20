@@ -10,9 +10,9 @@ use App\Http\Controllers\Dashboard\DashboradController;
 
 
 
-Route::prefix('dashboard')->middleware(['auth','verified'])->name('dashboard.')->group(function() {
+Route::prefix('dashboard')->middleware(['auth'])->name('dashboard.')->group(function() {
     // dashboard 
-    Route::get('/', [DashboradController::class,'index'])->name('index'); 
+    Route::get('/', [DashboradController::class,'index'])->middleware(['role:admin'])->name('index'); 
 
     // invoices
     Route::resource('invoices', InvoiceController::class); 
@@ -23,7 +23,7 @@ Route::prefix('dashboard')->middleware(['auth','verified'])->name('dashboard.')-
     // products
     Route::resource('products', ProductController::class); 
 
-    // carts
-    Route::resource('carts', CartController::class); 
+    // pdf invoice details
+    Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'generatePdf'])->name('invoices.pdf');
 });
 

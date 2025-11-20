@@ -86,7 +86,7 @@
                         </li>
                     </ul>
                 </li>
-                <li class="menu-item parent-menu">
+                {{-- <li class="menu-item parent-menu">
                     <a href="javascript:void(0)"
                         class="d-flex text-black fs-4 justify-content-between align-items-center p-2">
                         <div class="d-flex align-items-center gap-2">
@@ -107,7 +107,7 @@
                             </a>
                         </li>
                     </ul>
-                </li>
+                </li> --}}
                 <li>
                     <a href="" class="d-flex text-black fs-4 justify-content-between align-items-center p-2">
                         <div class="d-flex align-items-center gap-2">
@@ -156,6 +156,8 @@
             </div>
         </div>
     </main>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    @stack('scripts')
     <script src="{{ asset('assets/js/script.js') }}"></script>
 </body>
 

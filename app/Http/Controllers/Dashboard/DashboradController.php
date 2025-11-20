@@ -14,19 +14,15 @@ class DashboradController extends Controller
      */
     public function index()
     {
-        $invoices = Invoice::whereHas('cart.client.user', function ($q) {
-            $q->where('id', Auth::id());
-        })->with('cart.client')->cursor();
+        $invoices = Invoice::with('invoiceItems')->cursor();
 
-        $totalProducts = $invoices->map(function($invoice) {
-            return $invoice->cart->products->count() ?? 0;
-        })->sum();
+        $totalProducts = $invoices->map(fn($invoice) => $invoice->invoiceItems->pluck('product_id'))->unique()->count();
 
-        $totalCustomers = $invoices->pluck('cart.client_id')->unique()->count();
+        $totalCustomers = $invoices->pluck('client')->unique()->count();
 
-        $totalUsers = $invoices->pluck('cart.client.user_id')->unique()->count();
+        $totalUsers = $invoices->pluck('client.user_id')->unique()->count();
 
 
-        return view('dashboard.dashboard' , compact('invoices', 'totalProducts', 'totalCustomers', 'totalUsers'));
+        return view('dashboard.dashboard' , compact('invoices', 'totalProducts','totalProducts', 'totalCustomers', 'totalUsers'));
     }
 }

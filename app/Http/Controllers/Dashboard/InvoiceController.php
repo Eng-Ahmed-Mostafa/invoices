@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Models\Cart;
+use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Product;
+use App\Models\InvoiceItem;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\In;
 use App\Http\Controllers\Controller;
@@ -19,21 +21,24 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        $invoices = Invoice::whereHas('cart.client.user', function ($q) {
-            $q->where('id', Auth::id());
-        })->with('cart.client')->paginate(10);
+        $invoices = Invoice::whereHas('client.user',function($q) {
+            $q->where('id',Auth::id());
+        })->with('invoiceItems')->paginate(10);
         return view('dashboard.invoices.index', compact('invoices'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        $carts = Cart::whereHas('client.user', function ($q) {
-            $q->where('id', Auth::id());
-        })->get();
-        return view('dashboard.invoices.create', compact('carts'));
+        $clients = Client::where('user_id',Auth::id())->get();
+        $products = Product::paginate(10);
+
+        if($request->ajax()) {
+            return view('dashboard.invoices.data', compact('products'))->render();
+        }
+        return view('dashboard.invoices.create', compact('products','clients'));
     }
 
     /**
@@ -41,25 +46,41 @@ class InvoiceController extends Controller
      */
     public function store(Request $request)
     {
+
         $request->validate([
             "invoice_number" => "required|unique:invoices,invoice_number",
-            "due_time" => "nullable|numeric|min:1",
-            "cart_id" => "required|exists:carts,id",
+            "invoice_date" => "required|date|after_or_equal:today",
+            "due_date" => "required|date|after_or_equal:invoice_date",
+            'products_json' => 'required|json',
+            'total_amount' => 'required|numeric',
+            'client_id' => 'required|exists:clients,id',
         ]);
+        
+        // dd( $request->all());
+        $total_amount = 0;
+        // dd(json_decode($request->products_json, true));
+        foreach (json_decode($request->products_json, true) as $item) {
+            $product = Product::findOrFail($item['product_id']);
+            $total_amount += $product->price * $item['quantity'];
+        }
 
-        $invoiceModel = new Invoice();
-        $invoiceDate = Date::now();
-        $due_date = $invoiceModel->dueDate($invoiceDate, $request->due_time);
-        $total_amount = $invoiceModel->calcTotalAmount(Cart::findOrFail($request->cart_id)->products);
-        Invoice::create([
+        $invoice = Invoice::create([
             'invoice_number' => $request->invoice_number,
-            'invoice_date' => $invoiceDate,
-            'due_date' => $due_date,
-            'cart_id' => $request->cart_id,
+            'invoice_date' => $request->invoice_date,
+            'due_date' => $request->due_date,
+            'client_id' => $request->client_id,
             'total_amount' => $total_amount,
         ]);
 
-
+        foreach (json_decode($request->products_json, true) as $item) {
+            $product = Product::findOrFail($item['product_id']);
+            InvoiceItem::firstOrCreate([
+                'invoice_id' => $invoice->id,
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $product->price,
+            ]);
+        }
         
         return redirect()->route('dashboard.invoices.index');
     }
@@ -69,9 +90,10 @@ class InvoiceController extends Controller
      */
     public function show(string $id)
     {
-        $invoice = Invoice::whereHas('cart.client.user', function ($q) {
-            $q->where('id', Auth::id());
-        })->with('cart.products')->findOrFail($id);
+        $invoice = Invoice::whereHas('client.user',function($q) {
+            $q->where('id',Auth::id());
+        })->with('invoiceItems')->findOrFail($id);
+
         return view('dashboard.invoices.details', compact('invoice'));
     }
 
@@ -80,13 +102,16 @@ class InvoiceController extends Controller
      */
     public function edit(string $id)
     {
-        $carts = Cart::whereHas('client.user', function ($q) {
-            $q->where('id', Auth::id());
-        })->get();
-        $invoice = Invoice::whereHas('cart.client.user', function ($q) {
-            $q->where('id', Auth::id());
+        $clients = Client::where('user_id',Auth::id())->get();
+        $products = Product::paginate(10);
+        $invoice = Invoice::whereHas('client.user',function($q) {
+            $q->where('id',Auth::id());
         })->findOrFail($id);
-        return view('dashboard.invoices.edit', compact('invoice', 'carts'));
+
+        if(request()->ajax()) {
+            return view('dashboard.invoices.data', compact('products','invoice'))->render();
+        }
+        return view('dashboard.invoices.edit', compact('invoice', 'clients', 'products'));
     }
 
     /**
@@ -96,24 +121,39 @@ class InvoiceController extends Controller
     {
         $request->validate([
             "invoice_number" => "required|unique:invoices,invoice_number,".$id,
-            "due_time" => "nullable|numeric|min:1",
-            "cart_id" => "required|exists:carts,id",
+            "invoice_date" => "required|date|after_or_equal:today",
+            "due_date" => "required|date|after_or_equal:invoice_date",
+            'products_json' => 'required|json',
+            'total_amount' => 'required|numeric',
+            'client_id' => 'required|exists:clients,id',
         ]);
 
-        $invoiceModel = new Invoice();
-        $invoice = Invoice::whereHas('cart.client.user', function ($q) {
-            $q->where('id', Auth::id());
-        })->findOrFail($id);
-        $due_date = $invoiceModel->dueDate($invoice->invoice_date, $request->due_time);
-        
-        $total_amount = $invoiceModel->calcTotalAmount(Cart::findOrFail($request->cart_id)->products);
+        $total_amount = 0;
+        foreach (json_decode($request->products_json, true) as $item) {
+            $product = Product::findOrFail($item['product_id']);
+            $total_amount += $product->price * $item['quantity'];
+        }
+
+        $invoice = Invoice::findOrFail($id);
         $invoice->update([
             'invoice_number' => $request->invoice_number,
-            'invoice_date' => $invoice->invoice_date,
-            'due_date' => $due_date,
-            'cart_id' => $request->cart_id,
+            'invoice_date' => $request->invoice_date,
+            'due_date' => $request->due_date,
+            'client_id' => $request->client_id,
             'total_amount' => $total_amount,
         ]);
+
+        // Update Invoice Items
+        $invoice->invoiceItems()->delete();
+        foreach (json_decode($request->products_json, true) as $item) {
+            $product = Product::findOrFail($item['product_id']);
+            InvoiceItem::firstOrCreate([
+                'invoice_id' => $invoice->id,
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $product->price,
+            ]);
+        }
 
         return redirect()->route('dashboard.invoices.index');
     }
@@ -123,10 +163,27 @@ class InvoiceController extends Controller
      */
     public function destroy(string $id)
     {
-        $invoice = Invoice::whereHas('cart.client.user', function ($q) {
-            $q->where('id', Auth::id());
+        
+        $invoice = Invoice::whereHas('client.user',function($q) {
+            $q->where('id',Auth::id());
         })->findOrFail($id);
         $invoice->delete();
         return redirect()->route('dashboard.invoices.index');
+    }
+
+
+    /**
+     * Generate PDF for the specified invoice.
+     */
+    public function generatePdf(Invoice $invoice)
+    {
+        // Ensure the authenticated user owns the invoice
+        if ($invoice->client->user_id !== Auth::id()) {
+            return redirect()->route('dashboard.invoices.index')->with('error', 'Unauthorized access to invoice PDF.');
+        } 
+        // Generate PDF logic here (using a PDF library like Dompdf or Snappy)
+        $pdf = app('dompdf.wrapper');
+        $pdf->loadView('dashboard.invoices.pdf_detail', compact('invoice'));   
+        return $pdf->download('invoice_'.$invoice->invoice_number.'.pdf');
     }
 }
