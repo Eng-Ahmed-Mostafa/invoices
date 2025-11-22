@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Models\Client;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Invoice;
 use Illuminate\Support\Facades\Auth;
 
 class ClientController extends Controller
@@ -61,7 +62,8 @@ class ClientController extends Controller
         $client = Client::whereHas('user', function ($q) {
             $q->where('id', Auth::id());
         })->findOrFail($id);
-        return view('dashboard.clients.details', compact('client'));
+        $invoices = Invoice::where('client_id',$client->id)->get();
+        return view('dashboard.clients.details', compact('client','invoices'));
     }
 
     /**

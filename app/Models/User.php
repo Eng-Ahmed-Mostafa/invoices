@@ -22,6 +22,7 @@ class User extends Authenticatable // implements MustVerifyEmail
     protected $fillable = [
         'name',
         'email',
+        'role',
         'password',
     ];
 
@@ -54,5 +55,9 @@ class User extends Authenticatable // implements MustVerifyEmail
 
     public function clients()  {
         return $this->hasMany(Client::class);
+    }
+
+    public function isAdmin() {
+        return $this->role == 'admin';
     }
 }
