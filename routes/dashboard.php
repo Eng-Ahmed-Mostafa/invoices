@@ -15,6 +15,7 @@ Route::prefix('dashboard')->middleware(['auth'])->name('dashboard.')->group(func
     Route::get('/', [DashboradController::class,'index'])->middleware(['role:admin'])->name('index'); 
 
     // invoices
+    Route::get('invoices/search', [InvoiceController::class,'search'])->name('invoices.search'); 
     Route::resource('invoices', InvoiceController::class); 
 
     // clients

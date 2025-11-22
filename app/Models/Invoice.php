@@ -20,9 +20,10 @@ class Invoice extends Model
     ];
 
     protected $casts = [
-        'invoice_date' => 'datetime',
-        'due_date' => 'datetime',
+        'invoice_date' => 'date',
+        'due_date' => 'date',
     ];
+
 
     // public function cart() {
     //     return $this->belongsTo(Cart::class);

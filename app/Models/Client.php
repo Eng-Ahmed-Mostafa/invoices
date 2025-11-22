@@ -23,7 +23,8 @@ class Client extends Model
     }
     
 
-    // public function carts() {
-    //     return $this->hasMany(Cart::class);
-    // }
+    public function invoices() {
+        return $this->hasMany(Invoice::class);
+    }
+
 }
