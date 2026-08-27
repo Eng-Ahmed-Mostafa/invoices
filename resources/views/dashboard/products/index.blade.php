@@ -23,18 +23,18 @@
                                 <span class="text-secondary">{{ $product->slug }}</span>
                             </td>
                             <td>
-                                <img class="rounded-4" src="{{ asset('storage/'.$product->image) }}" alt="" width="40" height="40">
+                                <img class="rounded-4" src="{{ asset('storage/' . $product->image) }}" alt="" width="40" height="40">
                             </td>
                             <td>${{ $product->price }}</td>
                             <td>{{ $product->user->name }}</td>
                             <td>
                                 <div class="d-flex align-items-center gap-1">
-                                    <a href="{{ route('dashboard.products.show',['product'=>$product->id]) }}" class="btn btn-primary"><i class="fa-solid fa-eye"></i></a>
-                                    <a href="{{ route('dashboard.products.edit',['product' => $product->id]) }}" class="btn btn-success"><i class="fa-solid fa-pen-to-square"></i></a>
+                                    <a href="{{ route('dashboard.products.show',['product'=>$product]) }}" class="btn btn-primary"><i class="fa-solid fa-eye"></i></a>
+                                    <a href="{{ route('dashboard.products.edit',['product' => $product]) }}" class="btn btn-success"><i class="fa-solid fa-pen-to-square"></i></a>
                                     <button type="button"
                                         class="btn btn-danger openDeleteModal"
                                         data-id="{{ $product->id }}"
-                                        data-url="{{ route('dashboard.products.destroy', ['product' => $product->id]) }}"
+                                        data-url="{{ route('dashboard.products.destroy', ['product' => $product]) }}"
                                         data-bs-toggle="modal"
                                         data-bs-target="#deleteClientModal">
                                         <i class="fa-solid fa-trash"></i>
@@ -43,7 +43,7 @@
                             </td>
                         </tr>
                     @endforeach
-                    
+
                 </tbody>
             </table>
             <!-- Delete Modal -->

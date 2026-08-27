@@ -9,8 +9,8 @@
     <tbody>
         @foreach ($products as $product)
             <tr>
-                <td></td>
-                <td>{{ $product->slug }}</td>
+                <td>{{ $loop->iteration }}</td>
+                <td>{{ $product->title }}</td>
                 <td>
                     <input type="number" min="1" class="form-control product-qty" data-id="{{ $product->id }}"
                         value="1">

@@ -49,7 +49,7 @@
                 @enderror
             </div>
         </div>
-        
+
         <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">Add Product
             +</button>
 
@@ -69,7 +69,7 @@
                     </tr>
                 </thead>
                 <tbody id="tbody">
-                    
+
                 </tbody>
 
             </table>
@@ -143,7 +143,7 @@
 
 @php
     $selectedProducts = [];
-    foreach($invoiceItems as $item) {
+    foreach($invoice->invoiceItems as $item) {
         $selectedProducts[$item->product_id] = [
             'product_id' => $item->product_id,
             'title' => $item->product->slug ?? $item->product->name,
@@ -162,7 +162,7 @@
     <script>
         $(document).ready(function() {
             let selectedProducts = @json($selectedProducts);
-            
+
 
             addProduct();
             // choose product and display main price
@@ -197,7 +197,7 @@
                 let id = option.data('list');
                 let baseQuantity = option.data('base-quantity');
 
-                // check if user choose product 
+                // check if user choose product
                 if (!id) {
                     console.log('please enter product');
                     return;
@@ -205,7 +205,7 @@
 
                 let price = $('#priceInput').val();
                 let description = $('#descriptionInput').val();
-                
+
                 let quantity = $('#quantityInput').val();
 
                 selectedProducts[id] = {
@@ -219,20 +219,20 @@
                     oldQuantity: selectedProducts[id].oldQuantity
                 }
 
-                // reset inputs 
+                // reset inputs
                 $('#addProductModal').modal('hide')
-                $('#productSelect').val('') 
-                $('#priceDisplay').html('$00') 
-                $('#descriptionInput').val('') 
-                $('#priceInput').val('') 
+                $('#productSelect').val('')
+                $('#priceDisplay').html('$00')
+                $('#descriptionInput').val('')
+                $('#priceInput').val('')
 
 
                 addProduct()
 
             });
 
-            
-            
+
+
             // display product in html
             function addProduct() {
                 calculateTotal()
@@ -274,7 +274,7 @@
                 selectedProducts[id].quantity = value;
                 calculateTotal()
             })
-            
+
             // calce total Amount for all product selected
             function calculateTotal() {
                 let products = [];

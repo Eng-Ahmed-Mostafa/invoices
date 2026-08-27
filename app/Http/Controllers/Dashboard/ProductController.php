@@ -2,21 +2,28 @@
 
 namespace App\Http\Controllers\Dashboard;
 
-use App\Models\Product;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\Product\ProductRequest;
+use App\Interface\Product\ProductInterface;
+use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
-
 
 class ProductController extends Controller
 {
+    protected ProductInterface $productInterface;
+
+    public function __construct(ProductInterface $productInterface)
+    {
+        $this->productInterface = $productInterface;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $products = Product::with('user')->paginate(10);
+        $products = $this->productInterface->getAllPaginatedWithUser();
+
         return view('dashboard.products.index', compact('products'));
     }
 
@@ -31,41 +38,16 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
-        $product = Product::onlyTrashed()->where('slug', $request->slug)->first();
-        if($product){
-            $product->restore();
-            return $this->update($request, $product->id);
+        $restoredRedirect = $this->productInterface->restoreProductBySlug($request);
+        if ($restoredRedirect) {
+            return $restoredRedirect;
         }
 
-        $request->validate([
-            'title'=> 'required|max:255',
-            'slug'=> 'required|unique:products,slug',
-            'image'=> 'nullable|image|mimes:png,jpg,jpeg,gif|max:2048',
-            'price'=> 'required|numeric|min:0',
-            'quantity'=> 'required|integer|min:0',
-            'description'=> 'nullable|string',
-        ]);
+        $request->validated();
 
-        $slug = \Str::slug($request->slug);
-
-        $imagePath = null;
-        if($request->hasFile('image')){
-            $imagePath = $request->file('image')->store('images/products', 'public');
-        } else {
-            $imagePath = null;
-        }   
-
-        Product::create([
-            'title' => $request->title,
-            'slug' => $slug,
-            'image' => $imagePath,
-            'price' => $request->price,
-            'quantity' => $request->quantity,
-            'description' => $request->description,
-            'user_id' => Auth::id()
-        ]);
+        $this->productInterface->createProduct($request);
 
         return redirect()->route('dashboard.products.index');
     }
@@ -73,57 +55,27 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Product $product)
     {
-        $product = Product::findOrFail($id);
         return view('dashboard.products.details', compact('product'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Product $product)
     {
-        $product = Product::findOrFail($id);
-        return view('dashboard.products.edit',compact('product'));
+        return view('dashboard.products.edit', compact('product'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(ProductRequest $request, Product $product)
     {
-        $request->validate([
-            'title'=> 'required|max:255',
-            'slug'=> "required|unique:products,slug,$id",
-            'image'=> 'nullable|image|mimes:png,jpg,jpeg,gif|max:2048',
-            'price'=> 'required|numeric|min:0',
-            'quantity'=> 'required|integer|min:0',
-            'description'=> 'nullable|string',
-        ]);
+        $request->validated();
 
-        $slug = \Str::slug($request->slug);
-        
-        
-        $product = Product::findOrFail($id);
-
-        // Handle Image Upload
-        $imagePath = $product->image; 
-        if($request->hasFile('image')){
-            if($product->image){
-                Storage::disk('public')->delete($product->image);
-            }
-            $imagePath = $request->file('image')->store('images/products', 'public');
-        }
-        // dd($request->quantity);
-        $product->update([
-            'title' => $request->title,
-            'slug' => $slug,
-            'image' => $imagePath,
-            'price' => $request->price,
-            'quantity' => $request->quantity,
-            'description' => $request->description,
-        ]);
+        $this->productInterface->updateProduct($request, $product);
 
         return redirect()->route('dashboard.products.index');
     }
@@ -131,10 +83,10 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Product $product)
     {
-        $product = Product::findOrFail($id);
-        $product->delete();
+        $this->productInterface->deleteProduct($product);
+
         return redirect()->route('dashboard.products.index');
     }
 }

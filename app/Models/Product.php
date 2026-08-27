@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Trait\HashSlug;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use SoftDeletes, HasFactory;
+    use HasFactory, HashSlug, SoftDeletes;
+
     protected $fillable = [
         'title',
         'slug',
@@ -16,21 +18,21 @@ class Product extends Model
         'price',
         'quantity',
         'description',
-        'user_id'
+        'user_id',
     ];
 
-
-    public function user() {
-        return $this->belongsTo(User::class);
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
     }
 
-    // public function carts() {
-    //     return $this->belongsToMany(Cart::class, 'cart_product')->withPivot('quantity');
-    // }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function invoiceItems()
     {
         return $this->hasMany(InvoiceItem::class);
     }
-    
 }

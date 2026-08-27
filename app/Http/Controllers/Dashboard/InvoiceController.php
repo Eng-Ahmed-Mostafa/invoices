@@ -2,50 +2,41 @@
 
 namespace App\Http\Controllers\Dashboard;
 
-use App\Models\Cart;
-use App\Models\Client;
-use App\Models\Invoice;
-use App\Models\Product;
-use App\Models\InvoiceItem;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rules\In;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Invoice\InvoiceRequest;
+use App\Interface\Client\ClientInterface;
+use App\Interface\Invoice\InvoiceInterface;
+use App\Interface\Product\ProductInterface;
+use App\Models\Invoice;
+use App\Models\InvoiceItem;
+use App\Models\Product;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Date;
-
 
 class InvoiceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    protected InvoiceInterface $invoiceRepository;
+
+    protected ProductInterface $productRepository;
+
+    protected ClientInterface $clientRepository;
+
+    public function __construct(InvoiceInterface $invoiceRepository, ProductInterface $productRepository, ClientInterface $clientRepository)
     {
-        $invoices = Invoice::whereHas('client.user',function($q) {
-            $q->where('id',Auth::id());
-        })->with('invoiceItems')->paginate(10);
-        return view('dashboard.invoices.index', compact('invoices'));
+        $this->invoiceRepository = $invoiceRepository;
+        $this->productRepository = $productRepository;
+        $this->clientRepository = $clientRepository;
     }
 
     /**
-     * Search invoices by invoice number or client name.
+     * Display a listing of the resource.
      */
-    public function search(Request $request)
+    public function index(Request $request)
     {
         $query = $request->input('query');
 
-        // dd($query);
-        $invoices = Invoice::whereHas('client.user', function($q) {
-            $q->where('id', Auth::id());
-        })
-        ->where(function($q) use ($query) {
-            $q->where('invoice_number', 'like', '%'.$query.'%')
-            ->orWhereHas('client', function($q2) use ($query) {
-                $q2->where('username', 'like', '%'.$query.'%');
-            });
-        })
-        ->with('invoiceItems')
-        ->paginate(10);
+        $invoices = $this->invoiceRepository->invoiceQuery($query)->paginate(10)->withQueryString();
+
         if ($request->ajax()) {
             return response()->json([
                 'table' => view('dashboard.invoices.data-invoice', compact('invoices'))->render(),
@@ -56,70 +47,32 @@ class InvoiceController extends Controller
         return view('dashboard.invoices.index', compact('invoices'));
     }
 
-
     /**
      * Show the form for creating a new resource.
      */
     public function create(Request $request)
     {
-        $clients = Client::where('user_id',Auth::id())->get();
-        $products = Product::get();
+        $clients = $this->clientRepository->getAllClients();
+        $products = $this->productRepository->getAllProducts();
 
-        if($request->ajax()) {
+        if ($request->ajax()) {
             return view('dashboard.invoices.data', compact('products'))->render();
         }
-        return view('dashboard.invoices.create', compact('products','clients'));
+
+        return view('dashboard.invoices.create', compact('products', 'clients'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(InvoiceRequest $request)
     {
+        $request->validated();
 
-        $request->validate([
-            "invoice_number" => "required|unique:invoices,invoice_number",
-            "invoice_date" => "required|date|after_or_equal:today",
-            "due_date" => "required|date|after_or_equal:invoice_date",
-            'products_json' => 'required|json',
-            'client_id' => 'required|exists:clients,id',
-        ]);
-        
-        // dd( $request->all());
-        $total_amount = 0;
-        // dd(json_decode($request->products_json, true));
-        foreach (json_decode($request->products_json, true) as $item) {
-            $product = Product::findOrFail($item['product_id']);
-            if ($item['quantity'] > $product->quantity) {
-                return redirect()
-                    ->back()
-                    ->with('warning','they quantity for product not availd!');
-            }
-            $total_amount += $product->price * $item['quantity'];
-        }
+        $items = json_decode($request->products_json, true);
 
-        $invoice = Invoice::create([
-            'invoice_number' => $request->invoice_number,
-            'invoice_date' => $request->invoice_date,
-            'due_date' => $request->due_date,
-            'client_id' => $request->client_id,
-            'total_amount' => $total_amount,
-        ]);
+        $this->invoiceRepository->createInvoice($request, $items);
 
-        foreach (json_decode($request->products_json, true) as $item) {
-            $product = Product::findOrFail($item['product_id']);
-            InvoiceItem::firstOrCreate([
-                'invoice_id' => $invoice->id,
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'description' => $item['description'] ?? $product->description,
-                'unit_price' => $product->price,
-            ]);
-            $product->quantity -= $item['quantity'];
-            $product->save();
-
-        }
-        
         return redirect()->route('dashboard.invoices.index');
     }
 
@@ -128,9 +81,7 @@ class InvoiceController extends Controller
      */
     public function show(string $id)
     {
-        $invoice = Invoice::whereHas('client.user',function($q) {
-            $q->where('id',Auth::id());
-        })->with('invoiceItems')->findOrFail($id);
+        $invoice = $this->invoiceRepository->getInvoiceByIdWithItems($id);
 
         return view('dashboard.invoices.details', compact('invoice'));
     }
@@ -140,65 +91,22 @@ class InvoiceController extends Controller
      */
     public function edit(string $id)
     {
-        $clients = Client::where('user_id',Auth::id())->get();
-        $products = Product::get();
-        $invoice = Invoice::whereHas('client.user',function($q) {
-            $q->where('id',Auth::id());
-        })->findOrFail($id);
+        $clients = $this->clientRepository->getAllClients();
+        $products = $this->productRepository->getAllProducts();
+        $invoice = $this->invoiceRepository->getInvoiceByIdWithItems($id);
 
-        $invoiceItems = InvoiceItem::where('invoice_id',$invoice->id)->get();
-
-        return view('dashboard.invoices.edit', compact('invoice', 'clients', 'products','invoiceItems'));
+        return view('dashboard.invoices.edit', compact('invoice', 'clients', 'products'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(InvoiceRequest $request, string $id)
     {
-        $request->validate([
-            "invoice_number" => "required|unique:invoices,invoice_number,".$id,
-            "invoice_date" => "required|date|after_or_equal:today",
-            "due_date" => "required|date|after_or_equal:invoice_date",
-            'products_json' => 'required|json',
-            'client_id' => 'required|exists:clients,id',
-        ]);
+        $request->validated();
+        $items = json_decode($request->products_json, true);
 
-        $total_amount = 0;
-        foreach (json_decode($request->products_json, true) as $item) {
-            $product = Product::findOrFail($item['product_id']);
-            if ($item['quantity'] > $item['oldQuantity']) {
-                return redirect()
-                    ->back()
-                    ->with('warning','they quantity for product not availd!');
-            }
-            $total_amount += $product->price * $item['quantity'];
-        }
-
-        $invoice = Invoice::findOrFail($id);
-        $invoice->update([
-            'invoice_number' => $request->invoice_number,
-            'invoice_date' => $request->invoice_date,
-            'due_date' => $request->due_date,
-            'client_id' => $request->client_id,
-            'total_amount' => $total_amount,
-        ]);
-
-        // Update Invoice Items
-        $invoice->invoiceItems()->delete();
-        foreach (json_decode( $request->products_json, true) as $item) {
-            $product = Product::findOrFail($item['product_id']);
-            InvoiceItem::firstOrCreate([
-                'invoice_id' => $invoice->id,
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'description' => $item['description'] ?? $product->description,
-                'unit_price' => $product->price,
-            ]);
-            $product->quantity = abs($item['oldQuantity'] - $item['quantity']);
-
-            $product->save();
-        }
+        $this->invoiceRepository->updateInvoice($request, $id, $items);
 
         return redirect()->route('dashboard.invoices.index');
     }
@@ -208,26 +116,18 @@ class InvoiceController extends Controller
      */
     public function destroy(string $id)
     {
-        $invoice = Invoice::whereHas('client.user',function($q) {
-            $q->where('id',Auth::id());
-        })->findOrFail($id);
+        $invoice = $this->invoiceRepository->getInvoiceByIdWithItems($id);
 
         $items = $invoice->invoiceItems;
-
-        foreach ($items as $item) {
-            $product = Product::find($item->product_id);
-
-            if ($product) {
-                $product->quantity += $item->quantity;
-                $product->save();
-            }
-        }
+        
+        $this->invoiceRepository->increaseProductQuantity($items);
 
         $invoice->invoiceItems()->delete();
+
         $invoice->delete();
+
         return redirect()->route('dashboard.invoices.index');
     }
-
 
     /**
      * Generate PDF for the specified invoice.
@@ -237,10 +137,11 @@ class InvoiceController extends Controller
         // Ensure the authenticated user owns the invoice
         if ($invoice->client->user_id !== Auth::id()) {
             return redirect()->route('dashboard.invoices.index')->with('error', 'Unauthorized access to invoice PDF.');
-        } 
+        }
         // Generate PDF logic here (using a PDF library like Dompdf or Snappy)
         $pdf = app('dompdf.wrapper');
-        $pdf->loadView('dashboard.invoices.pdf_detail', compact('invoice'));   
+        $pdf->loadView('dashboard.invoices.pdf_detail', compact('invoice'));
+
         return $pdf->download('invoice_'.$invoice->invoice_number.'.pdf');
     }
 }
