@@ -140,7 +140,7 @@
                 fetchInvoices($('#searchInput').val(), pageUrl);
             });
 
-            function fetchInvoices(query = '', pageUrl = '{{ route('dashboard.invoices.search') }}') {
+            function fetchInvoices(query = '', pageUrl = '{{ route('dashboard.invoices.index') }}') {
                 $.ajax({
                     url: pageUrl,
                     type: 'GET',

@@ -55,8 +55,8 @@
                 @enderror
             </div>
         </div>
-        <div id="image" class="row g-3 mt-2 hidden">
-            <img class="image-fluid object-fit-cover w-100" src="" alt="">
+        <div id="image" class="mt-2 hidden" width="100" height="100">
+            <img class="image-fluid object-fit-cover" width="100" src="" alt="">
         </div>
         <button class="btn btn-primary mt-3">Add</button>
     </form>

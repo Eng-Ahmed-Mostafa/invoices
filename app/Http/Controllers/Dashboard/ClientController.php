@@ -5,19 +5,25 @@ namespace App\Http\Controllers\Dashboard;
 use App\Models\Client;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Client\ClientRequest;
+use App\Interface\Client\ClientInterface;
 use App\Models\Invoice;
 use Illuminate\Support\Facades\Auth;
 
 class ClientController extends Controller
 {
+    protected ClientInterface $clientRepository;
+
+    public function __construct(ClientInterface $clientRepository)
+    {
+        $this->clientRepository = $clientRepository;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $clients = Client::whereHas('user', function ($q) {
-            $q->where('id', Auth::id());
-        })->with('user')->paginate(10);
+        $clients = $this->clientRepository->getAllPaginatedWithUser();
         return view('dashboard.clients.index' ,compact('clients'));
     }
 
@@ -32,24 +38,11 @@ class ClientController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ClientRequest $request)
     {
-        $request->validate([
-            'username'=> 'required|max:255',
-            'email'=> 'required|email',
-            'phone'=> 'required',
-            'address'=> 'required|max:500',
-            'note'=> 'nullable',
-        ]);
+        $request->validated();
 
-        Client::create([
-            'username' => $request->username,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'note' => $request->note,
-            'user_id' => Auth::id()
-        ]);
+        $this->clientRepository->createClient($request);
 
         return redirect()->route('dashboard.clients.index');
     }
@@ -59,9 +52,7 @@ class ClientController extends Controller
      */
     public function show(string $id)
     {
-        $client = Client::whereHas('user', function ($q) {
-            $q->where('id', Auth::id());
-        })->findOrFail($id);
+        $client = $this->clientRepository->findClientById($id);
         $invoices = Invoice::where('client_id',$client->id)->get();
         return view('dashboard.clients.details', compact('client','invoices'));
     }
@@ -71,35 +62,18 @@ class ClientController extends Controller
      */
     public function edit(string $id)
     {
-        $client = Client::whereHas('user', function ($q) {
-            $q->where('id', Auth::id());
-        })->findOrFail($id);
+        $client = $this->clientRepository->findClientById($id);
         return view('dashboard.clients.edit', compact('client'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(ClientRequest $request, string $id)
     {
-        $request->validate([
-            'username'=> 'required|max:255',
-            'email'=> 'required|email',
-            'phone'=> 'required',
-            'address'=> 'required|max:500',
-            'note'=> 'nullable',
-        ]);
+        $request->validated();
 
-        $client = Client::whereHas('user', function ($q) {
-            $q->where('id', Auth::id());
-        })->findOrFail($id);
-        $client->update([
-            'username' => $request->username,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'note' => $request->note,
-        ]);
+        $this->clientRepository->updateClient($request, $id);
 
         return redirect()->route('dashboard.clients.index');
     }
@@ -109,10 +83,7 @@ class ClientController extends Controller
      */
     public function destroy(string $id)
     {
-        $client = Client::whereHas('user', function ($q) {
-            $q->where('id', Auth::id());
-        })->findOrFail($id);
-        $client->delete();
+        $this->clientRepository->deleteClient($id);
         return redirect()->route('dashboard.clients.index');
     }
 }

@@ -3,7 +3,7 @@
 @section('content')
     <h1 class="text-center fw-bold fs-1">Edit Product</h1>
     <hr class="my-4">
-    <form action="{{ route('dashboard.products.update', ['product' => $product->id]) }}" method="POST"
+    <form action="{{ route('dashboard.products.update', ['product' => $product]) }}" method="POST"
         enctype="multipart/form-data">
         @method('PUT')
         @csrf
@@ -62,8 +62,8 @@
                 @enderror
             </div>
         </div>
-        <div id="image" class="row g-3 mt-2 {{ $product->image ? '' : 'hidden' }}">
-            <img class="image-fluid object-fit-cover w-100" src="{{ asset('storage/' . $product->image) }}" alt="">
+        <div id="image" class="mt-2 {{ $product->image ? '' : 'hidden' }}" width="100" height="100">
+            <img class="image-fluid object-fit-cover" width="100" src="{{ asset('storage/' . $product->image) }}" alt="">
         </div>
         <button class="btn btn-primary mt-3">Edit</button>
     </form>

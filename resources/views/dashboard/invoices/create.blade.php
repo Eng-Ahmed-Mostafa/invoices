@@ -145,7 +145,7 @@
                                         <input list="productInput" id="productSelect" class="form-control">
                                         <datalist id="productInput">
                                             @foreach ($products as $product)
-                                                <option value="{{ $product->slug }}" data-list="{{ $product->id }}"
+                                                <option value="{{ $product->title }}" data-list="{{ $product->id }}"
                                                     data-price="{{ $product->price }}" data-base-quantity="{{ $product->quantity }}">
                                             @endforeach
                                         </datalist>

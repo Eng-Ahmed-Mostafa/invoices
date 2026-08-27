@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('invoice_number')->unique();
             $table->date('invoice_date');
             $table->date('due_date');
-            $table->decimal('total_amount',8,2)->default(0);
+            $table->decimal('total_amount',20,2)->default(0);
             $table->enum('status', ['unpaid', 'paid', 'pending', 'canceled'])->default('unpaid');
             $table->foreignId('cart_id')->constrained()->onDelete('cascade');
             $table->softDeletes();
